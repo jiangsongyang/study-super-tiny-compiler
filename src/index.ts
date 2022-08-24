@@ -120,7 +120,18 @@ export const transform = (ast: AST) => {
 }
 
 export const gen = (ast: AST) => {
-  return `const a = '123'`
+  let base = `const fn = () => `
+
+  ast.body.forEach(i => {
+    if (i.type === 'functionName') {
+      base = base.replace(/fn/, i.token)
+    }
+    if (['value', 'action'].includes(i.type)) {
+      base += `${i.token} `
+    }
+  })
+
+  return base.slice(0, -1)
 }
 
 export const Ts2Js = (content: string) => {
