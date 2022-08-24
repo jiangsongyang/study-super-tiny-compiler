@@ -23,22 +23,32 @@
  *   }
  */
 
+type ASTNode = {
+  type: string
+  token: string
+}
+
+type AST = {
+  type: 'Program'
+  body: ASTNode[]
+}
+
+const splitToken = ' '
+
 export const createAST = (content: string) => {
-  const AST: any = {
+  const AST: AST = {
     type: 'Program',
     body: [],
   }
 
   let pointer = 0
 
-  const stopToken = ' '
-
   const parseContent = (content: string) => {
     const stack: string[] = []
     while (pointer <= content.length) {
       const token = content[pointer]
 
-      if (!token || token === stopToken) {
+      if (!token || token === splitToken) {
         // 可以生成一个 token 了
         const tokenStr = stack.join('')
 
@@ -83,15 +93,33 @@ export const createAST = (content: string) => {
   return AST
 }
 
-export const transform = (ast: any) => {
-  const AST = {
-    type: 'Program',
-    body: [],
-  }
-  return AST
+export const transform = (ast: AST) => {
+  // 删除 splitToken
+  ast.body = ast.body
+    .map(i => {
+      if (i.type === 'split') {
+        return undefined
+      } else {
+        return i
+      }
+    })
+    .filter(Boolean) as ASTNode[]
+
+  // 重命名
+  ast.body = ast.body.map(i => {
+    if (i.type === 'statement') {
+      return {
+        ...i,
+        type: 'functionName',
+      }
+    }
+    return i
+  })
+
+  return ast
 }
 
-export const gen = (ast: any) => {
+export const gen = (ast: AST) => {
   return `const a = '123'`
 }
 
